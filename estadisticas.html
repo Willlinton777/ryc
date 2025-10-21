@@ -446,32 +446,22 @@
                 document.getElementById('totalAspirantes').textContent = totalAspirantes;
                 document.getElementById('totalEgresados').textContent = totalEgresados;
 
-                // Top Ciudades
-                const ciudades = {};
-                visitas.forEach(v => {
-                    if (v.ciudad) {
-                        ciudades[v.ciudad] = (ciudades[v.ciudad] || 0) + 1;
-                    }
-                });
-                renderChart('ciudadesChart', ciudades, 10);
+                // Distribución por Rol
+                const roles = {
+                    'Estudiante': totalEstudiantes,
+                    'Aspirante': totalAspirantes,
+                    'Egresado': totalEgresados
+                };
+                renderChart('rolesChart', roles);
 
-                // Top Programas
-                const programas = {};
+                // Top Países
+                const paises = {};
                 visitas.forEach(v => {
-                    if (v.programa) {
-                        programas[v.programa] = (programas[v.programa] || 0) + 1;
+                    if (v.pais) {
+                        paises[v.pais] = (paises[v.pais] || 0) + 1;
                     }
                 });
-                renderChart('programasChart', programas, 10);
-
-                // Motivos de Consulta
-                const motivos = {};
-                visitas.forEach(v => {
-                    if (v.motivo_consulta) {
-                        motivos[v.motivo_consulta] = (motivos[v.motivo_consulta] || 0) + 1;
-                    }
-                });
-                renderChart('motivosChart', motivos, 10);
+                renderChart('paisesChart', paises, 10);
 
                 // Navegadores
                 const navegadores = {};
@@ -490,6 +480,15 @@
                     }
                 });
                 renderChart('dispositivosChart', dispositivos);
+
+                // Sistemas Operativos
+                const sistemas = {};
+                visitas.forEach(v => {
+                    if (v.sistema_operativo) {
+                        sistemas[v.sistema_operativo] = (sistemas[v.sistema_operativo] || 0) + 1;
+                    }
+                });
+                renderChart('sistemasChart', sistemas);
 
                 // Tabla de últimas visitas
                 renderTable(visitas.slice(0, 20));
@@ -540,12 +539,12 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${fecha}</td>
-                    <td>${visita.nombre_completo || '-'}</td>
-                    <td>${visita.ciudad || '-'}</td>
-                    <td>${visita.pais || '-'}</td>
-                    <td>${visita.programa || '-'}</td>
                     <td>${visita.rol || '-'}</td>
-                    <td>${visita.motivo_consulta || '-'}</td>
+                    <td>${visita.pais || '-'}</td>
+                    <td>${visita.navegador || '-'}</td>
+                    <td>${visita.dispositivo || '-'}</td>
+                    <td>${visita.sistema_operativo || '-'}</td>
+                    <td>${visita.tiempo_permanencia || '0'}</td>
                 `;
                 tbody.appendChild(row);
             });

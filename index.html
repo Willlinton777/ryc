@@ -676,6 +676,38 @@
 
                 // Guardar timestamp de inicio para calcular tiempo de permanencia
                 window.visitStartTime = Date.now();
+                
+                // Actualizar tiempo periódicamente cada 30 segundos
+                window.tiempoInterval = setInterval(async () => {
+                    if (window.visitStartTime) {
+                        const tiempoSesionActual = Math.floor((Date.now() - window.visitStartTime) / 1000);
+                        
+                        try {
+                            const { data: ultimaVisita } = await supabase
+                                .from('visitas')
+                                .select('id, tiempo_permanencia')
+                                .eq('session_id', deviceId)
+                                .order('created_at', { ascending: false })
+                                .limit(1)
+                                .single();
+
+                            if (ultimaVisita) {
+                                const tiempoTotal = (ultimaVisita.tiempo_permanencia || 0) + tiempoSesionActual;
+                                
+                                await supabase
+                                    .from('visitas')
+                                    .update({ tiempo_permanencia: tiempoTotal })
+                                    .eq('id', ultimaVisita.id);
+                                
+                                // Reiniciar contador para siguiente intervalo
+                                window.visitStartTime = Date.now();
+                                console.log(`⏱️ Tiempo actualizado automáticamente: ${tiempoTotal}s`);
+                            }
+                        } catch (error) {
+                            console.error('Error actualizando tiempo periódico:', error);
+                        }
+                    }
+                }, 30000); // Actualizar cada 30 segundos
 
             } catch (err) {
                 console.error('❌ Error:', err);
@@ -688,17 +720,30 @@
         // Actualizar tiempo de permanencia al salir
         window.addEventListener('beforeunload', async () => {
             if (window.visitStartTime) {
-                const tiempoPermanencia = Math.floor((Date.now() - window.visitStartTime) / 1000);
+                const tiempoSesionActual = Math.floor((Date.now() - window.visitStartTime) / 1000);
                 const deviceId = getDeviceFingerprint();
                 
                 try {
-                    // Actualizar el registro más reciente de este dispositivo
-                    await supabase
+                    // Obtener el registro más reciente de este dispositivo
+                    const { data: ultimaVisita, error: errorSelect } = await supabase
                         .from('visitas')
-                        .update({ tiempo_permanencia: tiempoPermanencia })
+                        .select('id, tiempo_permanencia')
                         .eq('session_id', deviceId)
                         .order('created_at', { ascending: false })
-                        .limit(1);
+                        .limit(1)
+                        .single();
+
+                    if (errorSelect) throw errorSelect;
+
+                    // Sumar el tiempo de esta sesión al tiempo acumulado
+                    const tiempoTotal = (ultimaVisita.tiempo_permanencia || 0) + tiempoSesionActual;
+                    
+                    await supabase
+                        .from('visitas')
+                        .update({ tiempo_permanencia: tiempoTotal })
+                        .eq('id', ultimaVisita.id);
+
+                    console.log(`⏱️ Tiempo actualizado: +${tiempoSesionActual}s, Total: ${tiempoTotal}s`);
                 } catch (error) {
                     console.error('Error actualizando tiempo:', error);
                 }
@@ -728,9 +773,42 @@
                     counterElement.textContent = count.toLocaleString('es-ES');
                 } else {
                     // No puede registrar (visitó hace menos de 1 hora) - solo mostrar contenido
-                    console.log('⏸️ Visita reciente - omitir formulario');
+                    // y acumular tiempo en el registro existente
+                    console.log('⏸️ Visita reciente - omitir formulario, acumular tiempo');
                     await updateVisitCounter();
                     window.visitStartTime = Date.now();
+                    
+                    // Actualizar tiempo periódicamente cada 30 segundos para visitas continuas
+                    window.tiempoInterval = setInterval(async () => {
+                        if (window.visitStartTime) {
+                            const tiempoSesionActual = Math.floor((Date.now() - window.visitStartTime) / 1000);
+                            
+                            try {
+                                const { data: ultimaVisita } = await supabase
+                                    .from('visitas')
+                                    .select('id, tiempo_permanencia')
+                                    .eq('session_id', deviceId)
+                                    .order('created_at', { ascending: false })
+                                    .limit(1)
+                                    .single();
+
+                                if (ultimaVisita) {
+                                    const tiempoTotal = (ultimaVisita.tiempo_permanencia || 0) + tiempoSesionActual;
+                                    
+                                    await supabase
+                                        .from('visitas')
+                                        .update({ tiempo_permanencia: tiempoTotal })
+                                        .eq('id', ultimaVisita.id);
+                                    
+                                    // Reiniciar contador para siguiente intervalo
+                                    window.visitStartTime = Date.now();
+                                    console.log(`⏱️ Tiempo actualizado automáticamente: ${tiempoTotal}s`);
+                                }
+                            } catch (error) {
+                                console.error('Error actualizando tiempo periódico:', error);
+                            }
+                        }
+                    }, 30000); // Actualizar cada 30 segundos
                 }
             } catch (error) {
                 console.error('❌ Error:', error);

@@ -247,7 +247,7 @@
 
         <div class="footer">
             <p>© 2025 UNAD - Universidad Nacional Abierta y a Distancia</p>
-            <p>Desarrollado con ❤️ para la comunidad UNAD</p>
+            <p>Desarrollado con ❤️ para la comunidad Unadista</p>
         </div>
     </div>
 
@@ -268,27 +268,56 @@
 
         async function updateCounter(elementId) {
             try {
+                // Incrementar en el servidor
                 const response = await fetch(`${API_BASE}/${API_NAMESPACE}/${COUNTER_KEY}/up?apikey=${API_KEY}`);
                 if (!response.ok) throw new Error('Error al actualizar contador');
                 
                 const data = await response.json();
-                document.getElementById(elementId).textContent = data.data.up_count.toLocaleString('es-ES');
+                const newCount = data.data.up_count;
+                
+                // Guardar el valor en localStorage como respaldo
+                localStorage.setItem('lastCounterValue', newCount);
+                
+                document.getElementById(elementId).textContent = newCount.toLocaleString('es-ES');
+                console.log('✅ Contador incrementado:', newCount);
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById(elementId).textContent = 'Error';
+                console.error('❌ Error al actualizar:', error);
+                // Mostrar último valor conocido si hay error
+                const lastKnown = localStorage.getItem('lastCounterValue');
+                if (lastKnown) {
+                    document.getElementById(elementId).textContent = parseInt(lastKnown).toLocaleString('es-ES');
+                } else {
+                    document.getElementById(elementId).textContent = 'Error';
+                }
             }
         }
 
         async function getCounterValue(elementId) {
             try {
+                // Primero mostrar valor guardado si existe
+                const cachedValue = localStorage.getItem('lastCounterValue');
+                if (cachedValue) {
+                    document.getElementById(elementId).textContent = parseInt(cachedValue).toLocaleString('es-ES');
+                }
+                
+                // Luego actualizar desde el servidor
                 const response = await fetch(`${API_BASE}/${API_NAMESPACE}/${COUNTER_KEY}?apikey=${API_KEY}`);
                 if (!response.ok) throw new Error('Error al obtener contador');
                 
                 const data = await response.json();
-                document.getElementById(elementId).textContent = data.data.up_count.toLocaleString('es-ES');
+                const count = data.data.up_count;
+                
+                // Actualizar localStorage con el valor más reciente
+                localStorage.setItem('lastCounterValue', count);
+                
+                document.getElementById(elementId).textContent = count.toLocaleString('es-ES');
+                console.log('📊 Contador actual:', count);
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById(elementId).textContent = 'Error';
+                console.error('❌ Error al obtener contador:', error);
+                // Si falla, mantener el valor guardado o mostrar error
+                if (!cachedValue) {
+                    document.getElementById(elementId).textContent = 'Error';
+                }
             }
         }
 
@@ -296,10 +325,16 @@
             const currentHour = getCurrentHour();
             const lastVisit = localStorage.getItem('lastVisit');
             
+            console.log('🕐 Hora actual:', currentHour);
+            console.log('📅 Última visita:', lastVisit || 'Nunca');
+            
             if (lastVisit !== currentHour) {
                 localStorage.setItem('lastVisit', currentHour);
+                console.log('✅ Nueva visita contabilizada');
                 return true;
             }
+            
+            console.log('⏸️ Visita bloqueada (misma hora)');
             return false;
         }
 

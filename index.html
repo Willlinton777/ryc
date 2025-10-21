@@ -247,104 +247,71 @@
 
         <div class="footer">
             <p>© 2025 UNAD - Universidad Nacional Abierta y a Distancia</p>
-            <p>Desarrollado con ❤️ para la comunidad Unadista</p>
+            <p>Desarrollado con ❤️ para la comunidad UNAD</p>
         </div>
     </div>
 
-    <script>
-        const API_KEY = 'ut_LULzJzGA3WAioiMzTwVhqRcwprK9OuPmQ8wwgles';
-        const API_NAMESPACE = 'ryc';
-        const COUNTER_KEY = 'presentacion-genially';
-        const API_BASE = 'https://api.counterapi.dev/v2';
+    <script type="module">
+        // Importar Supabase
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-        function getCurrentHour() {
-            const d = new Date();
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            const h = String(d.getHours()).padStart(2, '0');
-            return `${y}-${m}-${day}-${h}`;
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://sdbarzmllsdtfstcpkjp.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkYmFyem1sbHNkdGZzdGNwa2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5ODk3MDgsImV4cCI6MjA3NjU2NTcwOH0.xZicbmnNbjvB9I0O6mFgmastZUBcq57sGkz76_mLM64';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Generar ID de sesión único
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('sessionId');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('sessionId', sessionId);
+            }
+            return sessionId;
         }
 
-        async function updateCounter(elementId) {
+        // Registrar visita
+        async function registerVisit() {
+            const counterElement = document.getElementById('totalCounter');
+            
             try {
-                // Incrementar en el servidor
-                const response = await fetch(`${API_BASE}/${API_NAMESPACE}/${COUNTER_KEY}/up?apikey=${API_KEY}`);
-                if (!response.ok) throw new Error('Error al actualizar contador');
-                
-                const data = await response.json();
-                const newCount = data.data.up_count;
-                
-                // Guardar el valor en localStorage como respaldo
-                localStorage.setItem('lastCounterValue', newCount);
-                
-                document.getElementById(elementId).textContent = newCount.toLocaleString('es-ES');
-                console.log('✅ Contador incrementado:', newCount);
+                const sessionId = getSessionId();
+                const alreadyVisited = sessionStorage.getItem('visited');
+
+                if (!alreadyVisited) {
+                    // Registrar nueva visita
+                    const { error: insertError } = await supabase
+                        .from('visitas')
+                        .insert({
+                            session_id: sessionId,
+                            user_agent: navigator.userAgent
+                        });
+
+                    if (insertError) throw insertError;
+
+                    sessionStorage.setItem('visited', 'true');
+                    console.log('✅ Visita registrada');
+                }
+
+                // Obtener total de visitas (INSTANTÁNEO)
+                const { count, error: countError } = await supabase
+                    .from('visitas')
+                    .select('*', { count: 'exact', head: true });
+
+                if (countError) throw countError;
+
+                counterElement.textContent = count.toLocaleString('es-ES');
+                console.log('📊 Total de visitas:', count);
+
             } catch (error) {
-                console.error('❌ Error al actualizar:', error);
-                // Mostrar último valor conocido si hay error
-                const lastKnown = localStorage.getItem('lastCounterValue');
-                if (lastKnown) {
-                    document.getElementById(elementId).textContent = parseInt(lastKnown).toLocaleString('es-ES');
-                } else {
-                    document.getElementById(elementId).textContent = 'Error';
-                }
+                console.error('❌ Error:', error);
+                counterElement.textContent = 'Error';
             }
         }
 
-        async function getCounterValue(elementId) {
-            try {
-                // Primero mostrar valor guardado si existe
-                const cachedValue = localStorage.getItem('lastCounterValue');
-                if (cachedValue) {
-                    document.getElementById(elementId).textContent = parseInt(cachedValue).toLocaleString('es-ES');
-                }
-                
-                // Luego actualizar desde el servidor
-                const response = await fetch(`${API_BASE}/${API_NAMESPACE}/${COUNTER_KEY}?apikey=${API_KEY}`);
-                if (!response.ok) throw new Error('Error al obtener contador');
-                
-                const data = await response.json();
-                const count = data.data.up_count;
-                
-                // Actualizar localStorage con el valor más reciente
-                localStorage.setItem('lastCounterValue', count);
-                
-                document.getElementById(elementId).textContent = count.toLocaleString('es-ES');
-                console.log('📊 Contador actual:', count);
-            } catch (error) {
-                console.error('❌ Error al obtener contador:', error);
-                // Si falla, mantener el valor guardado o mostrar error
-                if (!cachedValue) {
-                    document.getElementById(elementId).textContent = 'Error';
-                }
-            }
-        }
-
-        function shouldCountVisit() {
-            const currentHour = getCurrentHour();
-            const lastVisit = localStorage.getItem('lastVisit');
-            
-            console.log('🕐 Hora actual:', currentHour);
-            console.log('📅 Última visita:', lastVisit || 'Nunca');
-            
-            if (lastVisit !== currentHour) {
-                localStorage.setItem('lastVisit', currentHour);
-                console.log('✅ Nueva visita contabilizada');
-                return true;
-            }
-            
-            console.log('⏸️ Visita bloqueada (misma hora)');
-            return false;
-        }
-
-        window.addEventListener('load', async () => {
-            if (shouldCountVisit()) {
-                await updateCounter('totalCounter');
-            } else {
-                await getCounterValue('totalCounter');
-            }
-        });
+        // Ejecutar al cargar la página
+        window.addEventListener('load', registerVisit);
 
         // Crear partículas animadas
         function createParticles() {

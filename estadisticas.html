@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas RyC - UNAD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #003366 0%, #005599 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Login Modal */
+        .login-overlay {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .login-box h2 {
+            color: #003366;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .login-box p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FDB924 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #ff4444;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Dashboard */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .container.active {
+            display: block;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #003366;
+            font-size: 2em;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: #cc0000;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            color: #003366;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-card h2 {
+            color: #003366;
+            margin-bottom: 20px;
+        }
+
+        .chart-item {
+            margin-bottom: 15px;
+        }
+
+        .chart-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .chart-bar {
+            height: 30px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FDB924 100%);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #003366;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div class="login-overlay" id="loginModal">
+        <div class="login-box">
+            <h2>🔐 Acceso Restringido</h2>
+            <p>Panel de Estadísticas RyC - UNAD</p>
+            <form id="loginForm">
+                <input 
+                    type="text" 
+                    id="usernameInput" 
+                    class="login-input" 
+                    placeholder="Usuario"
+                    required
+                    autocomplete="username"
+                >
+                <input 
+                    type="password" 
+                    id="passwordInput" 
+                    class="login-input" 
+                    placeholder="Contrasena"
+                    required
+                    autocomplete="current-password"
+                >
+                <button type="submit" class="login-btn">Acceder</button>
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="container" id="dashboard">
+        <div class="header">
+            <h1>📊 Panel de Estadísticas RyC</h1>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+
+        <!-- Resumen General -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total Visitas</h3>
+                <div class="stat-value" id="totalVisitas">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Estudiantes</h3>
+                <div class="stat-value" id="totalEstudiantes">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Aspirantes</h3>
+                <div class="stat-value" id="totalAspirantes">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Egresados</h3>
+                <div class="stat-value" id="totalEgresados">-</div>
+            </div>
+        </div>
+
+        <!-- Gráfico: Distribución por Rol -->
+        <div class="chart-card">
+            <h2>👥 Distribución por Tipo de Usuario</h2>
+            <div id="rolesChart"></div>
+        </div>
+
+        <!-- Gráfico: Países -->
+        <div class="chart-card">
+            <h2>� Top 10 Países</h2>
+            <div id="paisesChart"></div>
+        </div>
+
+        <!-- Gráfico: Navegadores -->
+        <div class="chart-card">
+            <h2>🌐 Navegadores</h2>
+            <div id="navegadoresChart"></div>
+        </div>
+
+        <!-- Gráfico: Dispositivos -->
+        <div class="chart-card">
+            <h2>📱 Dispositivos</h2>
+            <div id="dispositivosChart"></div>
+        </div>
+
+        <!-- Gráfico: Sistemas Operativos -->
+        <div class="chart-card">
+            <h2>� Sistemas Operativos</h2>
+            <div id="sistemasChart"></div>
+        </div>
+
+        <!-- Tabla: Últimas Visitas -->
+        <div class="data-table">
+            <h2 style="margin-bottom: 20px; color: #003366;">📋 Últimas 20 Visitas</h2>
+            <table id="visitasTable">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Rol</th>
+                        <th>País</th>
+                        <th>Navegador</th>
+                        <th>Dispositivo</th>
+                        <th>SO</th>
+                        <th>Tiempo (seg)</th>
+                    </tr>
+                </thead>
+                <tbody id="visitasTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        // Importar Supabase
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://sdbarzmllsdtfstcpkjp.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkYmFyem1sbHNkdGZzdGNwa2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5ODk3MDgsImV4cCI6MjA3NjU2NTcwOH0.xZicbmnNbjvB9I0O6mFgmastZUBcq57sGkz76_mLM64';
+        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Manejo del login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = e.target.querySelector('.login-btn');
+
+            // Deshabilitar botón mientras valida
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Validando...';
+            errorMessage.textContent = '';
+
+
+            try {
+                // Consultar tabla administradores
+                const { data, error } = await supabase
+                    .from('administradores')
+                    .select('*')
+                    .eq('usuario', username)
+                    .eq('contrasena', password)
+                    .single();
+
+                if (error || !data) {
+                    errorMessage.textContent = '❌ Usuario o contrasena incorrectos';
+                    document.getElementById('usernameInput').value = '';
+                    document.getElementById('passwordInput').value = '';
+                    document.getElementById('usernameInput').focus();
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Acceder';
+                    return;
+                }
+
+                // Login exitoso
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                sessionStorage.setItem('admin_auth', 'true');
+                sessionStorage.setItem('admin_user', data.usuario);
+                loadStatistics();
+
+            } catch (err) {
+                console.error('Error en login:', err);
+                errorMessage.textContent = '❌ Error al validar credenciales';
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Acceder';
+            }
+        });
+
+        // Verificar si ya está autenticado
+        if (sessionStorage.getItem('admin_auth') === 'true') {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            loadStatistics();
+        }
+
+        // Logout
+        window.logout = function() {
+            sessionStorage.removeItem('admin_auth');
+            location.reload();
+        };
+
+        // Cargar estadísticas
+        async function loadStatistics() {
+            try {
+                // Obtener todas las visitas
+                const { data: visitas, error } = await supabase
+                    .from('visitas')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                // Calcular estadísticas generales
+                const totalVisitas = visitas.length;
+                const totalEstudiantes = visitas.filter(v => v.rol === 'Estudiante').length;
+                const totalAspirantes = visitas.filter(v => v.rol === 'Aspirante').length;
+                const totalEgresados = visitas.filter(v => v.rol === 'Egresado').length;
+
+                // Actualizar tarjetas
+                document.getElementById('totalVisitas').textContent = totalVisitas;
+                document.getElementById('totalEstudiantes').textContent = totalEstudiantes;
+                document.getElementById('totalAspirantes').textContent = totalAspirantes;
+                document.getElementById('totalEgresados').textContent = totalEgresados;
+
+                // Top Ciudades
+                const ciudades = {};
+                visitas.forEach(v => {
+                    if (v.ciudad) {
+                        ciudades[v.ciudad] = (ciudades[v.ciudad] || 0) + 1;
+                    }
+                });
+                renderChart('ciudadesChart', ciudades, 10);
+
+                // Top Programas
+                const programas = {};
+                visitas.forEach(v => {
+                    if (v.programa) {
+                        programas[v.programa] = (programas[v.programa] || 0) + 1;
+                    }
+                });
+                renderChart('programasChart', programas, 10);
+
+                // Motivos de Consulta
+                const motivos = {};
+                visitas.forEach(v => {
+                    if (v.motivo_consulta) {
+                        motivos[v.motivo_consulta] = (motivos[v.motivo_consulta] || 0) + 1;
+                    }
+                });
+                renderChart('motivosChart', motivos, 10);
+
+                // Navegadores
+                const navegadores = {};
+                visitas.forEach(v => {
+                    if (v.navegador) {
+                        navegadores[v.navegador] = (navegadores[v.navegador] || 0) + 1;
+                    }
+                });
+                renderChart('navegadoresChart', navegadores);
+
+                // Dispositivos
+                const dispositivos = {};
+                visitas.forEach(v => {
+                    if (v.dispositivo) {
+                        dispositivos[v.dispositivo] = (dispositivos[v.dispositivo] || 0) + 1;
+                    }
+                });
+                renderChart('dispositivosChart', dispositivos);
+
+                // Tabla de últimas visitas
+                renderTable(visitas.slice(0, 20));
+
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+                alert('Error al cargar estadísticas');
+            }
+        }
+
+        // Renderizar gráfico de barras
+        function renderChart(containerId, data, limit = null) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            // Ordenar y limitar
+            const sorted = Object.entries(data)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, limit || Object.keys(data).length);
+
+            const max = Math.max(...sorted.map(([_, count]) => count));
+
+            sorted.forEach(([label, count]) => {
+                const percentage = (count / max) * 100;
+                
+                const item = document.createElement('div');
+                item.className = 'chart-item';
+                item.innerHTML = `
+                    <div class="chart-label">
+                        <span>${label}</span>
+                        <span><strong>${count}</strong></span>
+                    </div>
+                    <div style="background: #e0e0e0; border-radius: 5px; overflow: hidden;">
+                        <div class="chart-bar" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Renderizar tabla
+        function renderTable(visitas) {
+            const tbody = document.getElementById('visitasTableBody');
+            tbody.innerHTML = '';
+
+            visitas.forEach(visita => {
+                const fecha = new Date(visita.created_at).toLocaleString('es-ES');
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${fecha}</td>
+                    <td>${visita.nombre_completo || '-'}</td>
+                    <td>${visita.ciudad || '-'}</td>
+                    <td>${visita.pais || '-'}</td>
+                    <td>${visita.programa || '-'}</td>
+                    <td>${visita.rol || '-'}</td>
+                    <td>${visita.motivo_consulta || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Auto-refresh cada 30 segundos
+        setInterval(() => {
+            if (sessionStorage.getItem('admin_auth') === 'true') {
+                loadStatistics();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

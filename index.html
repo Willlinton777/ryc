@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información Registro y Control - UNAD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #003366 0%, #005599 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #003366;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            color: #FF6B35;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .counters-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .counter-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .counter-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .counter-card.total {
+            border-top: 5px solid #FF6B35;
+        }
+
+        .counter-card.monthly {
+            border-top: 5px solid #FDB924;
+        }
+
+        .counter-label {
+            color: #003366;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .counter-value {
+            font-size: 3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FF6B35 0%, #FDB924 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .counter-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .presentation-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .presentation-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+
+        .presentation-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        .footer a {
+            color: #FDB924;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .counter-value {
+                font-size: 2.5em;
+            }
+
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Información Registro y Control</h1>
+            <p class="subtitle">Universidad Nacional Abierta y a Distancia - UNAD</p>
+        </div>
+
+        <div class="counters-container">
+            <div class="counter-card total">
+                <div class="counter-icon">🌍</div>
+                <div class="counter-label">Visitas Históricas</div>
+                <div class="counter-value" id="totalCounter">
+                    <span class="loading">Cargando...</span>
+                </div>
+            </div>
+
+            <div class="counter-card monthly">
+                <div class="counter-icon">📅</div>
+                <div class="counter-label">Visitas Este Mes</div>
+                <div class="counter-value" id="monthlyCounter">
+                    <span class="loading">Cargando...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="presentation-container">
+            <div style="width: 100%;">
+                <div style="position: relative; padding-bottom: 56.25%; padding-top: 0; height: 0;">
+                    <iframe title="CIP - La Dorada" 
+                            frameborder="0" 
+                            width="1200" 
+                            height="675" 
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 10px;" 
+                            src="https://view.genially.com/688375b7bdb28c1fa8a657e2" 
+                            type="text/html" 
+                            allowscriptaccess="always" 
+                            allowfullscreen="true" 
+                            scrolling="yes" 
+                            allownetworking="all">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 UNAD - Universidad Nacional Abierta y a Distancia</p>
+            <p>Desarrollado con ❤️ para la comunidad UNAD</p>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'ut_LULzJzGA3WAioiMzTwVhqRcwprK9OuPmQ8wwgles';
+        const API_NAMESPACE = 'ryc';
+        const TOTAL_COUNTER_KEY = 'presentacion-genially';
+        const MONTHLY_COUNTER_KEY = 'presentacion-mes';
+        const API_BASE = 'https://api.counterapi.dev/v2';
+
+        function getCurrentHour() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const h = String(d.getHours()).padStart(2, '0');
+            return `${y}-${m}-${day}-${h}`;
+        }
+
+        function getCurrentMonth() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        async function updateCounter(key, elementId) {
+            try {
+                const response = await fetch(`${API_BASE}/${API_NAMESPACE}/${key}/up?apikey=${API_KEY}`);
+                if (!response.ok) throw new Error('Error al actualizar contador');
+                
+                const data = await response.json();
+                document.getElementById(elementId).textContent = data.data.up_count.toLocaleString('es-ES');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById(elementId).textContent = 'Error';
+            }
+        }
+
+        async function getCounterValue(key, elementId) {
+            try {
+                const response = await fetch(`${API_BASE}/${API_NAMESPACE}/${key}?apikey=${API_KEY}`);
+                if (!response.ok) throw new Error('Error al obtener contador');
+                
+                const data = await response.json();
+                document.getElementById(elementId).textContent = data.data.up_count.toLocaleString('es-ES');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById(elementId).textContent = 'Error';
+            }
+        }
+
+        async function resetMonthlyCounter() {
+            try {
+                const resetResponse = await fetch(`${API_BASE}/${API_NAMESPACE}/${MONTHLY_COUNTER_KEY}/reset?apikey=${API_KEY}`);
+                if (!resetResponse.ok) throw new Error('Error al resetear contador');
+                
+                await getCounterValue(MONTHLY_COUNTER_KEY, 'monthlyCounter');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('monthlyCounter').textContent = 'Error';
+            }
+        }
+
+        async function updateMonthlyCounter() {
+            const currentMonth = getCurrentMonth();
+            const storedMonth = localStorage.getItem('visitMonth');
+            
+            if (storedMonth !== currentMonth) {
+                localStorage.setItem('visitMonth', currentMonth);
+                await resetMonthlyCounter();
+            } else {
+                await updateCounter(MONTHLY_COUNTER_KEY, 'monthlyCounter');
+            }
+        }
+
+        function shouldCountVisit() {
+            const currentHour = getCurrentHour();
+            const lastVisit = localStorage.getItem('lastVisit');
+            
+            if (lastVisit !== currentHour) {
+                localStorage.setItem('lastVisit', currentHour);
+                return true;
+            }
+            return false;
+        }
+
+        window.addEventListener('load', async () => {
+            if (shouldCountVisit()) {
+                await updateCounter(TOTAL_COUNTER_KEY, 'totalCounter');
+                await updateMonthlyCounter();
+            } else {
+                await getCounterValue(TOTAL_COUNTER_KEY, 'totalCounter');
+                await getCounterValue(MONTHLY_COUNTER_KEY, 'monthlyCounter');
+            }
+        });
+    </script>
+</body>
+</html>
